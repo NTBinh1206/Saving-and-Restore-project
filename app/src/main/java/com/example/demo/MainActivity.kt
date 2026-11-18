@@ -25,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,6 +64,9 @@ fun StateLabScreen(
     // D: ViewModel thường - sống qua xoay màn hình, mất khi process death.
     val numberD by viewModel.plainNumber.collectAsStateWithLifecycle()
 
+    // E: DataStore - lưu vào bộ nhớ máy, còn cả khi tắt app rồi mở lại.
+    val numberE by viewModel.persistedNumber.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -82,6 +86,7 @@ fun StateLabScreen(
             title = "A - remember",
             value = numberA,
             buttonText = "Generate A",
+            description = "Mất khi: xoay màn hình, process death, tắt app",
             onGenerate = { numberA = Random.nextInt(1, 1000) }
         )
 
@@ -89,6 +94,7 @@ fun StateLabScreen(
             title = "B - rememberSaveable",
             value = numberB,
             buttonText = "Generate B",
+            description = "Mất khi: tắt app (force stop / vuốt khỏi Recents)",
             onGenerate = { numberB = Random.nextInt(1, 1000) }
         )
 
@@ -96,6 +102,7 @@ fun StateLabScreen(
             title = "C - ViewModel + SavedStateHandle",
             value = numberC,
             buttonText = "Generate C",
+            description = "Mất khi: tắt app (force stop / vuốt khỏi Recents)",
             onGenerate = { viewModel.generateSavedNumber() }
         )
 
@@ -103,7 +110,16 @@ fun StateLabScreen(
             title = "D - ViewModel (không SavedStateHandle)",
             value = numberD,
             buttonText = "Generate D",
+            description = "Mất khi: process death, tắt app",
             onGenerate = { viewModel.generatePlainNumber() }
+        )
+
+        StateCard(
+            title = "E - DataStore",
+            value = numberE,
+            buttonText = "Generate E",
+            description = "Không mất khi tắt app. Chỉ mất khi xóa dữ liệu app hoặc gỡ app",
+            onGenerate = { viewModel.generatePersistedNumber() }
         )
     }
 }
@@ -113,6 +129,7 @@ fun StateCard(
     title: String,
     value: Int,
     buttonText: String,
+    description: String,
     onGenerate: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -127,6 +144,13 @@ fun StateCard(
             Button(onClick = onGenerate) {
                 Text(buttonText)
             }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = description,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 
